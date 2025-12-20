@@ -10,12 +10,14 @@ import com.khomsi.backend.main.game.GameRepository;
 import com.khomsi.backend.main.game.mapper.GameMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
 
 @Service
+@ConditionalOnProperty(name = "app.ai.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class ChatServiceImpl implements ChatService {
     @Value("${app.googleai.api.prompt-template}")
