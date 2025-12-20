@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 
-import static com.khomsi.backend.сonfig.ApplicationConfig.BEARER_KEY_SECURITY_SCHEME;
+import static com.khomsi.backend.config.ApplicationConfig.BEARER_KEY_SECURITY_SCHEME;
 
 @RestController
 @RequestMapping("/chat")

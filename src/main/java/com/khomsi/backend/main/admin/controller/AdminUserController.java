@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 
-import static com.khomsi.backend.сonfig.ApplicationConfig.BEARER_KEY_SECURITY_SCHEME;
+import static com.khomsi.backend.config.ApplicationConfig.BEARER_KEY_SECURITY_SCHEME;
 
 @RestController
 @Tag(name = "Admin-User", description = "CRUD operation for Admin-User Controller")

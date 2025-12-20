@@ -76,6 +76,10 @@ public class AdminMetricServiceImpl implements AdminMetricService {
                 .filter(transaction -> transaction.getPaymentMethods()
                         .equalsIgnoreCase(PaymentMethod.STRIPE.toString()))
                 .count();
+        long alipayPayments = transactions.stream()
+                .filter(transaction -> transaction.getPaymentMethods()
+                        .equalsIgnoreCase(PaymentMethod.ALIPAY.toString()))
+                .count();
         long paypalPayments = transactions.stream()
                 .filter(transaction -> transaction.getPaymentMethods()
                         .equalsIgnoreCase(PaymentMethod.PAYPAL.toString()))
@@ -86,6 +90,7 @@ public class AdminMetricServiceImpl implements AdminMetricService {
         monthSummary.put("totalTransactions", totalTransactions);
         monthSummary.put("totalSaleGames", totalSaleGames);
         monthSummary.put("stripePayments", stripePayments);
+        monthSummary.put("alipayPayments", alipayPayments);
         monthSummary.put("payPalPayments", paypalPayments);
         return monthSummary;
     }

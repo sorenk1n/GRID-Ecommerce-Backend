@@ -1,4 +1,4 @@
-package com.khomsi.backend.сonfig.service;
+package com.khomsi.backend.config.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

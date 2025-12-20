@@ -110,3 +110,112 @@ The demo includes:
 
 [Link to backend documentation](https://github.com/GRID-Game-Store/documentation/tree/main/backend)
 
+---
+
+## 中文翻译
+
+这是教育项目 GRID 的后端部分。本说明描述了如何在本地机器上克隆并运行该项目。
+
+## 快速开始
+
+这些说明将帮助你获取项目副本，并在本地进行开发与测试。
+
+## 如何运行
+
+本应用需要预先安装 [JDK 17](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html) 或更高版本。
+[更多信息](https://www.oracle.com/java/technologies/downloads/#jdk19-windows)
+
+* 克隆此仓库
+
+```
+git clone https://github.com/GRID-Game-Store/backend
+```
+
+* 确保使用 JDK 17 和 Maven
+* 你可以通过运行 `mvn clean package` 来构建项目并运行测试
+  或
+  `mvn install / mvn clean install`
+
+### 使用 Maven 运行 Spring Boot 应用：
+
+现在你可以在 8082 端口启动服务器。
+
+* 使用 Maven 运行 Spring Boot 应用：
+  `mvn spring-boot:run`
+* [可选] 使用 `java -jar` 命令运行 Spring Boot 应用
+  `java -jar target/backend-0.0.1-SNAPSHOT.jar`
+
+### 使用 Docker 运行 Spring Boot 应用：
+要使用 Docker 运行 Spring Boot 应用：
+* 在 backend 文件夹内运行 Docker Compose 文件：
+  `docker-compose -f docker-compose.yml up`
+
+### 在 Docker 中运行 Keycloak
+
+Keycloak 用于认证，可通过 Docker Compose 启动。
+提供的 docker-compose.yml 文件包含 Keycloak 服务和 Keycloak 的 PostgreSQL 数据库。
+
+要同时运行 Keycloak 与后端：
+
+* 运行 Docker Compose 文件：
+  `docker-compose -f docker-compose.yml up`
+
+这将会在 8084 端口启动 Keycloak。
+建议在后端之前启动 Keycloak，以确保认证服务可用。
+
+[文档链接](https://github.com/GRID-Game-Store/documentation/tree/main/backend)
+
+## API 文档
+
+API 文档通过 Swagger UI 提供。启动应用后，可访问：
+`http://localhost:8084/swagger`
+该界面提供所有可用端点的完整列表，并允许直接在浏览器中测试。
+
+## GRID 演示视频
+
+查看我们的演示视频，展示 GRID 项目的主要功能：
+
+### 主页面
+
+https://github.com/user-attachments/assets/540fdc0d-b89e-4ab5-b09a-98554d3e0f59
+
+### AI 聊天顾问
+
+https://github.com/user-attachments/assets/48e87a2d-fe04-44a7-b9c8-6060a6840901
+
+### 认证与授权
+
+https://github.com/user-attachments/assets/759e81ef-abc9-462f-bc86-2146ac7ed2e6
+
+### 支付能力
+
+https://github.com/user-attachments/assets/8648e341-3ea2-4f1c-968f-13e65f6395f2
+
+演示内容包括：
+- 主页面概览
+- 使用 Vertext Gemini 的 AI 聊天顾问
+- 基于 Keycloak 的注册与授权流程
+- Stripe 与 PayPal 支付集成
+- 管理面板演示
+
+## 功能特性
+
+- **AI 聊天顾问**：由 Vertext Gemini 驱动，提供智能客户支持。
+- **安全认证**：使用 Keycloak 实现稳健的用户管理。
+- **多种支付方式**：集成 Stripe 和 PayPal，支持灵活支付处理。
+- **管理面板**：借助 Astro.js 与 Spring Boot 提供完整的管理界面，便于平台管理。
+
+## 技术栈
+
+* [Maven](https://maven.apache.org/) - 依赖管理
+* [Spring Boot](https://spring.io/projects/spring-boot) - 服务端框架
+* [JUnit](https://junit.org/junit5/) - 测试框架
+* [Keycloak](https://www.keycloak.org/) - 身份与访问管理
+* [Swagger](https://swagger.io/) - API 文档
+* [Docker](https://www.docker.com/) - 容器化平台
+
+## 作者：
+
+* [SEM24](https://github.com/SEM24)
+
+[后端文档链接](https://github.com/GRID-Game-Store/documentation/tree/main/backend)

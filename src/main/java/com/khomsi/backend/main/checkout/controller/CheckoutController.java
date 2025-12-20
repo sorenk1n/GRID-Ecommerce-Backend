@@ -1,7 +1,6 @@
 package com.khomsi.backend.main.checkout.controller;
 
-import com.khomsi.backend.main.checkout.apis.PaypalService;
-import com.khomsi.backend.main.checkout.apis.StripeService;
+import com.khomsi.backend.main.checkout.apis.AlipayService;
 import com.khomsi.backend.main.checkout.apis.impl.LocalPaymentService;
 import com.khomsi.backend.main.checkout.model.dto.stripe.PaymentResponse;
 import com.khomsi.backend.main.checkout.model.enums.BalanceAction;
@@ -12,14 +11,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
-import static com.khomsi.backend.сonfig.ApplicationConfig.BEARER_KEY_SECURITY_SCHEME;
+import static com.khomsi.backend.config.ApplicationConfig.BEARER_KEY_SECURITY_SCHEME;
 
 @RestController
 @Tag(name = "Checkout", description = "CRUD operation for Checkout Controller")
@@ -27,8 +24,7 @@ import static com.khomsi.backend.сonfig.ApplicationConfig.BEARER_KEY_SECURITY_S
 @Validated
 @RequiredArgsConstructor
 public class CheckoutController {
-    private final StripeService stripeService;
-    private final PaypalService paypalService;
+    private final AlipayService alipayService;
     private final LocalPaymentService localPaymentService;
 
     @PostMapping("/balance/create-payment")
@@ -51,72 +47,43 @@ public class CheckoutController {
                 .body(paymentResponse);
     }
 
-    @PostMapping("/recharge/stripe/create-payment")
+    @PostMapping("/recharge/alipay/create-payment")
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)},
-            summary = "Stripe endpoint to create session for balance recharging")
-    public ResponseEntity<PaymentResponse> balanceRechargeStripe(BigDecimal amount, HttpServletRequest request) {
-        // create the stripe session
-        PaymentResponse paymentResponse = stripeService.createBalanceRecharge(amount, request);
-        // send the stripe session id in response
+            summary = "支付宝余额充值预下单")
+    public ResponseEntity<PaymentResponse> balanceRechargeAlipay(@RequestParam("amount") BigDecimal amount,
+                                                                 HttpServletRequest request) {
+        PaymentResponse paymentResponse = alipayService.createBalanceRecharge(amount, request);
         return ResponseEntity
                 .status(paymentResponse.httpStatus())
                 .body(paymentResponse);
     }
 
-    @PostMapping("/stripe/create-payment")
+    @PostMapping("/alipay/create-payment")
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)},
-            summary = "Stripe endpoint to create session")
-    public ResponseEntity<PaymentResponse> checkoutStripe(BalanceAction balanceAction, HttpServletRequest request) {
-        // create the stripe session
-        PaymentResponse paymentResponse = stripeService.createPayment(balanceAction, request);
-        // send the stripe session id in response
+            summary = "支付宝创建订单并返回支付二维码/链接")
+    public ResponseEntity<PaymentResponse> checkoutAlipay(@RequestParam("balanceAction") BalanceAction balanceAction,
+                                                          HttpServletRequest request) {
+        PaymentResponse paymentResponse = alipayService.createPayment(balanceAction, request);
         return ResponseEntity
                 .status(paymentResponse.httpStatus())
                 .body(paymentResponse);
     }
 
     // Check and place the order if success
-    @PostMapping("/stripe/capture-payment")
+    @PostMapping("/alipay/capture-payment")
     @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)},
-            summary = "Stripe capture to place the order")
-    public ResponseEntity<PaymentResponse> placeStripeOrder(@RequestParam("sessionId") String sessionId) {
-        PaymentResponse paymentResponse = stripeService.capturePayment(sessionId);
+            summary = "支付宝查单并确认支付状态")
+    public ResponseEntity<PaymentResponse> placeAlipayOrder(@RequestParam("sessionId") String sessionId) {
+        PaymentResponse paymentResponse = alipayService.capturePayment(sessionId);
         return ResponseEntity
                 .status(paymentResponse.httpStatus())
                 .body(paymentResponse);
     }
 
-    @PostMapping("/recharge/paypal/create-payment")
-    @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)},
-            summary = "Paypal endpoint to create session for balance recharge")
-    public ResponseEntity<PaymentResponse> balanceRechargePayPal(BigDecimal amount, HttpServletRequest request) {
-        // create the stripe session
-        PaymentResponse paymentResponse = paypalService.createBalanceRecharge(amount, request);
-        // send the stripe session id in response
-        return ResponseEntity
-                .status(paymentResponse.httpStatus())
-                .body(paymentResponse);
-    }
-
-    @PostMapping("/paypal/create-payment")
-    @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)},
-            summary = "Paypal endpoint to create session")
-    public ResponseEntity<PaymentResponse> checkoutPayPal(BalanceAction balanceAction, HttpServletRequest request) {
-        // create the stripe session
-        PaymentResponse paymentResponse = paypalService.createPayment(balanceAction, request);
-        // send the stripe session id in response
-        return ResponseEntity
-                .status(paymentResponse.httpStatus())
-                .body(paymentResponse);
-    }
-
-    @PostMapping("/paypal/capture-payment")
-    @Operation(security = {@SecurityRequirement(name = BEARER_KEY_SECURITY_SCHEME)},
-            summary = "PaypalService capture to place the order")
-    public ResponseEntity<PaymentResponse> placePayPalOrder(@RequestParam("sessionId") String sessionId) {
-        PaymentResponse paymentResponse = paypalService.capturePayment(sessionId);
-        return ResponseEntity
-                .status(paymentResponse.httpStatus())
-                .body(paymentResponse);
+    @PostMapping("/alipay/notify")
+    @Operation(summary = "支付宝异步通知回调，无需鉴权")
+    public String alipayNotify(@RequestParam Map<String, String> params) {
+        boolean handled = alipayService.handleAsyncNotify(params);
+        return handled ? "success" : "failure";
     }
 }

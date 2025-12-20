@@ -15,7 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import static com.khomsi.backend.сonfig.ApplicationConfig.BEARER_KEY_SECURITY_SCHEME;
+import static com.khomsi.backend.config.ApplicationConfig.BEARER_KEY_SECURITY_SCHEME;
 
 @RestController
 @Tag(name = "Admin-Platform", description = "CRUD operation for Admin-Platform Controller")

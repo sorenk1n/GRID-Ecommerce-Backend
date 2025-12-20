@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.khomsi.backend.сonfig.ApplicationConfig.BEARER_KEY_SECURITY_SCHEME;
+import static com.khomsi.backend.config.ApplicationConfig.BEARER_KEY_SECURITY_SCHEME;
 
 @RestController
 @Tag(name = "Review", description = "CRUD operation for Review Controller")

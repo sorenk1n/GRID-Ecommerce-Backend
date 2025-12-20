@@ -1,7 +1,7 @@
-package com.khomsi.backend.сonfig;
+package com.khomsi.backend.config;
 
-import com.khomsi.backend.сonfig.service.PropertiesMessageService;
-import com.khomsi.backend.сonfig.service.PropertiesMessageServiceImpl;
+import com.khomsi.backend.config.service.PropertiesMessageService;
+import com.khomsi.backend.config.service.PropertiesMessageServiceImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

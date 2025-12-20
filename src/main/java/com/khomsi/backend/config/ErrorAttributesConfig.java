@@ -1,4 +1,4 @@
-package com.khomsi.backend.сonfig;
+package com.khomsi.backend.config;
 
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.error.ErrorAttributeOptions.Include;

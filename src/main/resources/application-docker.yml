@@ -10,16 +10,19 @@ app:
       location: ${GOOGLE_API_LOCATION}
   front-url: http://localhost:3000
   payment:
-    unitAmount: "100"
-    currencyApi: https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?valcode=EUR
-    paypal:
-      base-api-url: https://api-m.sandbox.paypal.com
-      paypal-id: ${PAYPAL_CLIENT_ID}
-      paypal-secret: ${PAYPAL_SECRET_KEY}
-      currency_EURO: "EUR"
-    stripe:
-      currency: "uah"
-      stripe-secret: ${STRIPE_SECRET_KEY}
+    alipay:
+      gateway-url: https://openapi.alipay.com/gateway.do
+      app-id: ${ALIPAY_APP_ID}
+      private-key: ${ALIPAY_APP_PRIVATE_KEY}
+      alipay-public-key: ${ALIPAY_PUBLIC_KEY}
+      notify-url: ${ALIPAY_NOTIFY_URL:http://localhost:8082/api/v1/checkout/alipay/notify}
+      return-url: ${ALIPAY_RETURN_URL:http://localhost:3000/payment/success}
+      sub-merchant-id: ${ALIPAY_SUB_MERCHANT_ID}
+      sign-type: RSA2
+      charset: utf-8
+      format: json
+      timeout-express: 15m
+      product-code: FACE_TO_FACE_PAYMENT
 jwt:
   auth:
     converter:

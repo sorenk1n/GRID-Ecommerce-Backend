@@ -2,7 +2,7 @@ package com.khomsi.backend.main.handler;
 
 import com.khomsi.backend.main.handler.dto.ErrorMessage;
 import com.khomsi.backend.main.handler.dto.ErrorMessageResponse;
-import com.khomsi.backend.сonfig.service.PropertiesMessageService;
+import com.khomsi.backend.config.service.PropertiesMessageService;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.RequiredArgsConstructor;

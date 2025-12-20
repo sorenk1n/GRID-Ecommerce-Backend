@@ -1,4 +1,4 @@
-package com.khomsi.backend.сonfig.service;
+package com.khomsi.backend.config.service;
 
 public interface PropertiesMessageService {
     String getProperty(String source);

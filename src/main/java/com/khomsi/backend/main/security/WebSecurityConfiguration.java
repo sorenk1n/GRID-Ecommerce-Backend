@@ -24,6 +24,8 @@ public class WebSecurityConfiguration {
                         .requestMatchers("/swagger", "/swagger-ui/**",
                                 "/v3/api-docs/**", "/error").permitAll()
 
+                        .requestMatchers("/api/v1/checkout/alipay/notify").permitAll()
+
                         .requestMatchers("/api/v1/games", "/api/v1/games/**",
                                 "/api/v1/genres/**", "/api/v1/genres",
                                 "/api/v1/platforms", "/api/v1/developers",
