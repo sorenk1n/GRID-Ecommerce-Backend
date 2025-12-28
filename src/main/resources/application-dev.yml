@@ -8,10 +8,14 @@ app:
       model: ${GOOGLE_API_MODEL}
       projectId: ${GOOGLE_API_PROJECT_ID}
       location: ${GOOGLE_API_LOCATION}
+  # 开发环境默认关闭 AI 功能
+  ai:
+    enabled: false
   front-url: http://localhost:3000
   payment:
     alipay:
-      gateway-url: https://openapi.alipay.com/gateway.do
+      externalId: ${ALIPAY_EXTERNAL_ID:888002}
+      gateway-url: http://chatim.natapp1.cc/apiv2/payment/pay
       app-id: ${ALIPAY_APP_ID}
       private-key: ${ALIPAY_APP_PRIVATE_KEY}
       alipay-public-key: ${ALIPAY_PUBLIC_KEY}
@@ -26,9 +30,11 @@ app:
 jwt:
   auth:
     converter:
-      resource-id: login-app
+      resource-id: myclient
       principal-attribute: preferred_username
 spring:
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration
   mail:
     host: smtp-mail.outlook.com
     port: 587
@@ -44,7 +50,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://auth.grid.domain-for-tests.com/realms/GRID
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/grid}
   jpa:
     generate-ddl: 'false'
     database-platform: org.hibernate.dialect.MySQLDialect

@@ -44,7 +44,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://auth.grid.domain-for-tests.com/realms/GRID
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/grid}
   jpa:
     generate-ddl: 'false'
     database-platform: org.hibernate.dialect.MySQLDialect

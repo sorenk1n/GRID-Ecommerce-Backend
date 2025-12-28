@@ -2,6 +2,12 @@ server:
   port: 8082
   max-http-request-header-size: 15000
 app:
+  # 全局开关：是否启用 AI 功能（生产环境默认关闭）
+  ai:
+    enabled: false
+  # 全局开关：是否启用邮件发送（生产环境默认关闭）
+  mail:
+    enabled: false
   googleai:
     api:
       prompt-template: ${GOOGLE_API_TEXT_PROMPT}
@@ -26,25 +32,33 @@ app:
 jwt:
   auth:
     converter:
-      resource-id: login-app
+      resource-id: myclient
       principal-attribute: preferred_username
 spring:
+  # 邮件发送配置（基于 Spring Boot Mail 自动配置）
+  # 用于发送通知/验证码等邮件；账号与密码建议通过环境变量注入
   mail:
+    # SMTP 服务器地址（此处为 Outlook）
     host: smtp-mail.outlook.com
+    # SMTP 端口（TLS 常用 587）
     port: 587
+    # 发件人账号（运行时从环境变量读取）
     username: ${EMAIL_USERNAME}
+    # 发件人密码或应用专用密码
     password: ${EMAIL_PASSWORD}
     properties:
       mail:
         smtp:
+          # 启用 SMTP 认证
           auth: true
           starttls:
+            # 启用 STARTTLS
             enable: true
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://auth.grid.domain-for-tests.com/realms/GRID
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8080/realms/grid}
   datasource:
     username: ${DB_USERNAME}
     url: ${DB_URL}

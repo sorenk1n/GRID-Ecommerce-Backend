@@ -6,8 +6,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Getter
 @Setter
+/**
+ * 支付宝支付配置属性类
+ * 用于绑定配置文件中以"app.payment.alipay"为前缀的配置项
+ * 通过@ConfigurationProperties注解将外部配置映射到该类的属性上
+ */
 @ConfigurationProperties(prefix = "app.payment.alipay")
+
 public class AlipayProperties {
+    private String externalId ;
     /**
      * 支付宝开放平台网关地址，例如：https://openapi.alipay.com/gateway.do
      */
