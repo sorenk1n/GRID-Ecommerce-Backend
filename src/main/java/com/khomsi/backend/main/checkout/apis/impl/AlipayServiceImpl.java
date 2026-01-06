@@ -2,12 +2,11 @@ package com.khomsi.backend.main.checkout.apis.impl;
 
 import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
-import com.alipay.api.request.AlipayTradePrecreateRequest;
 import com.alipay.api.request.AlipayTradeQueryRequest;
-import com.alipay.api.response.AlipayTradePrecreateResponse;
 import com.alipay.api.response.AlipayTradeQueryResponse;
 import com.alipay.api.internal.util.AlipaySignature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.khomsi.backend.additional.cart.model.dto.CartDTO;
 import com.khomsi.backend.additional.cart.model.dto.CartItemDto;
 import com.khomsi.backend.additional.cart.service.CartService;
@@ -24,11 +23,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +57,7 @@ public class AlipayServiceImpl implements AlipayService {
     private final AlipayClient alipayClient;
     private final AlipayProperties alipayProperties;
     private final ObjectMapper objectMapper;
+    private final RestTemplate restTemplate;
 
     @Override
     public PaymentResponse createBalanceRecharge(BigDecimal amount, HttpServletRequest request) {
@@ -78,22 +86,17 @@ public class AlipayServiceImpl implements AlipayService {
             String outTradeNo = UUID.randomUUID().toString().replace("-", "");
             String subject = buildSubject(balanceAction, cartItemDtoList);
 
-            AlipayTradePrecreateRequest precreateRequest = new AlipayTradePrecreateRequest();
-            precreateRequest.setNotifyUrl(resolveNotifyUrl(request));
-            precreateRequest.setBizContent(buildPrecreateBizContent(outTradeNo, subject, totalAmount));
-
-            AlipayTradePrecreateResponse response = alipayClient.execute(precreateRequest);
-            if (response == null || !response.isSuccess() || !StringUtils.hasText(response.getQrCode())) {
-                log.error("支付宝预下单失败，response={}", response);
-                return buildFailureResponse("支付宝预下单失败，请重试", HttpStatus.BAD_REQUEST);
+            String qrCode = placeProviderPreOrder(outTradeNo, subject, totalAmount, request);
+            if (!StringUtils.hasText(qrCode)) {
+                return buildFailureResponse("服务商预下单失败，请重试", HttpStatus.BAD_REQUEST);
             }
 
             AlipayCreatePaymentResponse responseData = AlipayCreatePaymentResponse.builder()
                     .outTradeNo(outTradeNo)
-                    .qrCode(response.getQrCode())
+                    .qrCode(qrCode)
                     .subject(subject)
                     .build();
-            transactionService.placeTemporaryTransaction(totalAmount, outTradeNo, response.getQrCode(),
+            transactionService.placeTemporaryTransaction(totalAmount, outTradeNo, qrCode,
                     balanceAction, PaymentMethod.ALIPAY);
             return buildResponse(responseData, "支付宝预下单成功");
         } catch (Exception e) {
@@ -169,20 +172,41 @@ public class AlipayServiceImpl implements AlipayService {
                 .collect(Collectors.joining(", "));
     }
 
-    private String buildPrecreateBizContent(String outTradeNo, String subject, BigDecimal totalAmount) throws Exception {
-        Map<String, Object> bizContent = new LinkedHashMap<>();
-        bizContent.put("out_trade_no", outTradeNo);
-        bizContent.put("subject", subject);
-        bizContent.put("total_amount", totalAmount.toPlainString());
-        bizContent.put("timeout_express", alipayProperties.getTimeoutExpress());
-        bizContent.put("product_code", alipayProperties.getProductCode());
-        if (StringUtils.hasText(alipayProperties.getSubMerchantId())) {
-            Map<String, String> subMerchant = new LinkedHashMap<>();
-            subMerchant.put("merchant_id", alipayProperties.getSubMerchantId());
-            subMerchant.put("merchant_type", "SMID");
-            bizContent.put("sub_merchant", subMerchant);
+    private String placeProviderPreOrder(String outTradeNo, String subject,
+                                         BigDecimal totalAmount, HttpServletRequest request) {
+        String validationError = validateProviderConfig();
+        if (validationError != null) {
+            log.error("服务商支付配置缺失：{}", validationError);
+            return null;
         }
-        return objectMapper.writeValueAsString(bizContent);
+        Map<String, String> formPayload = buildProviderForm(outTradeNo, subject, totalAmount, request);
+        MultiValueMap<String, String> formBody = new LinkedMultiValueMap<>();
+        formBody.setAll(formPayload);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(formBody, headers);
+        ResponseEntity<String> response = restTemplate.postForEntity(
+                alipayProperties.getServiceProviderUrl(),
+                entity,
+                String.class
+        );
+        if (!response.getStatusCode().is2xxSuccessful() || !StringUtils.hasText(response.getBody())) {
+            log.error("服务商预下单失败，status={}, body={}", response.getStatusCode(), response.getBody());
+            return null;
+        }
+        try {
+            Map<String, Object> responseBody = objectMapper.readValue(
+                    response.getBody(), new TypeReference<>() {});
+            String qrCode = extractPaymentUrl(responseBody);
+            if (!StringUtils.hasText(qrCode)) {
+                log.error("服务商响应未包含支付二维码/链接，payload={}", responseBody);
+                return null;
+            }
+            return qrCode;
+        } catch (Exception e) {
+            log.error("解析服务商响应失败，body={}", response.getBody(), e);
+            return null;
+        }
     }
 
     private String resolveNotifyUrl(HttpServletRequest request) {
@@ -190,5 +214,108 @@ public class AlipayServiceImpl implements AlipayService {
             return alipayProperties.getNotifyUrl();
         }
         return createUrl(request, PaymentEndpoints.ALIPAY_NOTIFY);
+    }
+
+    private Map<String, String> buildProviderForm(String outTradeNo, String subject,
+                                                  BigDecimal totalAmount, HttpServletRequest request) {
+        Map<String, String> form = new LinkedHashMap<>();
+        form.put("payChannel", String.valueOf(alipayProperties.getPayChannel()));
+        form.put("typeIndex", String.valueOf(alipayProperties.getTypeIndex()));
+        form.put("externalId", alipayProperties.getExternalId());
+        form.put("merchantTradeNo", outTradeNo);
+        form.put("totalAmount", totalAmount.toPlainString());
+        form.put("merchantSubject", subject);
+        form.put("externalGoodsType", String.valueOf(alipayProperties.getExternalGoodsType()));
+        form.put("merchantPayNotifyUrl", resolveNotifyUrl(request));
+        form.put("quitUrl", resolveQuitUrl(request));
+        form.put("returnUrl", resolveReturnUrl(request));
+        form.put("clientIp", resolveClientIp(request));
+        form.put("riskControlNotifyUrl", resolveRiskControlNotifyUrl(request));
+        return form;
+    }
+
+    private String resolveQuitUrl(HttpServletRequest request) {
+        if (StringUtils.hasText(alipayProperties.getQuitUrl())) {
+            return alipayProperties.getQuitUrl();
+        }
+        return resolveReturnUrl(request);
+    }
+
+    private String resolveReturnUrl(HttpServletRequest request) {
+        if (StringUtils.hasText(alipayProperties.getReturnUrl())) {
+            return alipayProperties.getReturnUrl();
+        }
+        return createUrl(request, PaymentEndpoints.ALIPAY_RETURN);
+    }
+
+    private String resolveRiskControlNotifyUrl(HttpServletRequest request) {
+        if (StringUtils.hasText(alipayProperties.getRiskControlNotifyUrl())) {
+            return alipayProperties.getRiskControlNotifyUrl();
+        }
+        return resolveNotifyUrl(request);
+    }
+
+    private String resolveClientIp(HttpServletRequest request) {
+        String forwarded = request.getHeader("X-Forwarded-For");
+        if (StringUtils.hasText(forwarded)) {
+            return forwarded.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
+    }
+
+    private String validateProviderConfig() {
+        List<String> missing = new ArrayList<>();
+        if (!StringUtils.hasText(alipayProperties.getServiceProviderUrl())) {
+            missing.add("serviceProviderUrl");
+        }
+        if (!StringUtils.hasText(alipayProperties.getExternalId())) {
+            missing.add("externalId");
+        }
+        if (alipayProperties.getPayChannel() == null) {
+            missing.add("payChannel");
+        }
+        if (alipayProperties.getTypeIndex() == null) {
+            missing.add("typeIndex");
+        }
+        if (alipayProperties.getExternalGoodsType() == null) {
+            missing.add("externalGoodsType");
+        }
+        return missing.isEmpty() ? null : String.join(", ", missing);
+    }
+
+    private String extractPaymentUrl(Map<String, Object> responseBody) {
+        String direct = findFirstValue(responseBody);
+        if (StringUtils.hasText(direct)) {
+            return direct;
+        }
+        Object data = responseBody.get("data");
+        if (data instanceof Map<?, ?> dataMap) {
+            return findFirstValue(castToStringObjectMap(dataMap));
+        }
+        return null;
+    }
+
+    private Map<String, Object> castToStringObjectMap(Map<?, ?> map) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        for (Map.Entry<?, ?> entry : map.entrySet()) {
+            if (entry.getKey() != null) {
+                result.put(entry.getKey().toString(), entry.getValue());
+            }
+        }
+        return result;
+    }
+
+    private String findFirstValue(Map<String, Object> payload) {
+        String[] keys = new String[] {
+                "qrCode", "qr_code", "codeUrl", "code_url",
+                "payUrl", "pay_url", "paymentUrl", "payment_url"
+        };
+        for (String key : keys) {
+            Object value = payload.get(key);
+            if (value != null && StringUtils.hasText(value.toString())) {
+                return value.toString();
+            }
+        }
+        return null;
     }
 }

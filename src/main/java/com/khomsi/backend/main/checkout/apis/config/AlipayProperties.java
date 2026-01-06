@@ -20,6 +20,22 @@ public class AlipayProperties {
      */
     private String gatewayUrl;
     /**
+     * 服务商支付通道地址（表单提交）。
+     */
+    private String serviceProviderUrl;
+    /**
+     * 支付通道类型。
+     */
+    private Integer payChannel;
+    /**
+     * 支付类型索引。
+     */
+    private Integer typeIndex;
+    /**
+     * 外部商品类型。
+     */
+    private Integer externalGoodsType;
+    /**
      * 服务商应用的 AppId。
      */
     private String appId;
@@ -51,6 +67,14 @@ public class AlipayProperties {
      * 用户支付完成后跳转的前端地址（可选）。
      */
     private String returnUrl;
+    /**
+     * 风控回调地址（服务商需要时使用）。
+     */
+    private String riskControlNotifyUrl;
+    /**
+     * 取消支付跳转地址（服务商需要时使用）。
+     */
+    private String quitUrl;
     /**
      * 直付通二级商户号（SMID）。
      */

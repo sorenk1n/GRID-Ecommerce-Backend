@@ -14,13 +14,19 @@ app:
   front-url: http://localhost:3000
   payment:
     alipay:
-      externalId: ${ALIPAY_EXTERNAL_ID:888002}
-      gateway-url: http://chatim.natapp1.cc/apiv2/payment/pay
+      service-provider-url: ${ALIPAY_PROVIDER_URL:http://chatim.natapp1.cc/apiv2/payment/pay}
+      pay-channel: ${ALIPAY_PAY_CHANNEL:1}
+      type-index: ${ALIPAY_TYPE_INDEX:2}
+      external-id: ${ALIPAY_EXTERNAL_ID:888002}
+      external-goods-type: ${ALIPAY_EXTERNAL_GOODS_TYPE:9}
+      gateway-url: https://openapi.alipay.com/gateway.do
       app-id: ${ALIPAY_APP_ID}
       private-key: ${ALIPAY_APP_PRIVATE_KEY}
       alipay-public-key: ${ALIPAY_PUBLIC_KEY}
       notify-url: ${ALIPAY_NOTIFY_URL:http://localhost:8082/api/v1/checkout/alipay/notify}
       return-url: ${ALIPAY_RETURN_URL:http://localhost:3000/payment/success}
+      risk-control-notify-url: ${ALIPAY_RISK_NOTIFY_URL:}
+      quit-url: ${ALIPAY_QUIT_URL:}
       sub-merchant-id: ${ALIPAY_SUB_MERCHANT_ID}
       sign-type: RSA2
       charset: utf-8
