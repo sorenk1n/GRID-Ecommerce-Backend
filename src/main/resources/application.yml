@@ -39,7 +39,9 @@ app:
 jwt:
   auth:
     converter:
+      # Keycloak clientId used to extract roles from token resource_access.
       resource-id: myclient
+      # Claim used as principal name (mapped to Authentication.getName()).
       principal-attribute: preferred_username
 spring:
   # 邮件发送配置（基于 Spring Boot Mail 自动配置）
@@ -84,3 +86,4 @@ logging:
   level:
     #    org.springframework: trace
     org.springframework.security: trace
+
