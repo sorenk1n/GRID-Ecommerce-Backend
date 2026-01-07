@@ -43,6 +43,14 @@ jwt:
       resource-id: myclient
       # Claim used as principal name (mapped to Authentication.getName()).
       principal-attribute: preferred_username
+auth:
+  keycloak:
+    enabled: true
+  local:
+    enabled: true
+    issuer: grid-local
+    token-ttl: 2h
+    hmac-secret: ${LOCAL_JWT_SECRET:change-me-please-change-me-please-32}
 spring:
   # 邮件发送配置（基于 Spring Boot Mail 自动配置）
   # 用于发送通知/验证码等邮件；账号与密码建议通过环境变量注入
@@ -84,6 +92,5 @@ springdoc:
     path: /swagger
 logging:
   level:
-    #    org.springframework: trace
-    org.springframework.security: trace
-
+    org.springframework: debug
+    org.springframework.security: debug

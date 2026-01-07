@@ -28,6 +28,11 @@ public class WebSecurityConfiguration {
                         // 支付平台回调必须允许匿名访问。
                         .requestMatchers("/api/v1/checkout/alipay/notify").permitAll()
 
+                        // 本地登录/注册接口允许匿名访问。
+                        .requestMatchers("/api/v1/auth", "/api/v1/auth/**")
+                        .permitAll()
+
+
                         // 公共展示/只读接口，无需认证。
                         .requestMatchers("/api/v1/games", "/api/v1/games/**",
                                 "/api/v1/genres/**", "/api/v1/genres",
@@ -53,6 +58,8 @@ public class WebSecurityConfiguration {
                 .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer.jwt(
                         jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter)))
                 // API 采用无状态会话。
+                // API 使用无状态 JWT，关闭 CSRF 以允许匿名 POST/PUT 等请求。
+                .csrf(csrf -> csrf.disable())
                 .sessionManagement(sessionManagement -> sessionManagement
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 启用默认 CORS 配置（若存在 CorsConfigurationSource）。

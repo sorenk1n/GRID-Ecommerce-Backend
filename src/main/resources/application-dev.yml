@@ -38,6 +38,14 @@ jwt:
     converter:
       resource-id: myclient
       principal-attribute: preferred_username
+auth:
+  keycloak:
+    enabled: false
+  local:
+    enabled: true
+    issuer: grid-local
+    token-ttl: 2h
+    hmac-secret: ${LOCAL_JWT_SECRET:change-me-please-change-me-please-32}
 spring:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration
@@ -86,3 +94,5 @@ logging:
     org:
       springframework:
         security: trace
+
+
